@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
 
 function ListPage() {
@@ -8,17 +8,91 @@ function ListPage() {
   const [minRating, setMinRating] = useState("All");
   const location = useLocation();
 
+  // Fetch albums from the API on component mount
   useEffect(() => {
     async function fetchAlbums() {
-      const response = await fetch(
-        "https://6728860f270bd0b97555efb5.mockapi.io/albums"
-      );
-      const data = await response.json();
-      setAlbums(data);
+      try {
+        const response = await fetch(
+          "https://6728860f270bd0b97555efb5.mockapi.io/albums"
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch albums.");
+        }
+        const data = await response.json();
+        setAlbums(data);
+      } catch (error) {
+        console.error(error);
+        alert("Error fetching albums.");
+      }
     }
     fetchAlbums();
   }, []);
 
+  /**
+   * Memoized function to handle search query updates with debounce.
+   * This prevents the search from triggering on every keystroke.
+   */
+  const handleSearchInput = useCallback((value) => {
+    setSearchQuery(value);
+  }, []);
+
+  const handleMinRatingChange = useCallback((value) => {
+    setMinRating(value);
+  }, []);
+
+  /**
+   * useMemo to memoize the filtered albums based on searchQuery and minRating.
+   * This ensures that the filtering logic runs only when dependencies change.
+   */
+  const filteredAlbums = useMemo(() => {
+    const query = searchQuery.toLowerCase();
+
+    return albums.filter((album) => {
+      // Album Name Match
+      const albumMatch = album.name.toLowerCase().includes(query);
+
+      // Artist Name Match
+      const artistMatch =
+        album.artists &&
+        album.artists.some((artist) =>
+          artist.name.toLowerCase().includes(query)
+        );
+
+      // Genre Match
+      const genreMatch =
+        album.genres &&
+        album.genres.some((genre) => genre.toLowerCase().includes(query));
+
+      // Track Name Match
+      const trackMatch =
+        album.tracks &&
+        album.tracks.some((track) => track.name.toLowerCase().includes(query));
+
+      // Rating Filter
+      const ratingMatch =
+        minRating === "All" ||
+        (album.rating && album.rating >= Number(minRating));
+
+      // Return true if any of the search fields match and rating criteria are met
+      return (
+        (albumMatch || artistMatch || genreMatch || trackMatch) && ratingMatch
+      );
+    });
+  }, [albums, searchQuery, minRating]);
+
+  // Debounce mechanism to delay the search input handling
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      // The searchQuery state is already being updated via handleSearchInput
+      // Here, you could perform additional actions if needed
+    }, 300); // 300ms debounce time
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchQuery]);
+
+  // Styling objects
   const headerStyle = {
     backgroundColor: "#111111",
     color: "#fff",
@@ -52,21 +126,25 @@ function ListPage() {
   const inputStyle = {
     padding: "8px",
     marginRight: "10px",
+    width: "300px",
+    backgroundColor: "#f0f0f0", // Light gray background
+    color: "#333", // Dark text for better readability
+    border: "1px solid #ccc", // Light border
+    borderRadius: "4px", // Rounded corners
+    outline: "none", // Remove default outline
+    boxSizing: "border-box", // Ensure padding doesn't affect overall width
+    transition: "background-color 0.3s, border-color 0.3s", // Smooth transition on focus
   };
 
-  const filteredAlbums = albums.filter((album) => {
-    const searchMatch = album.name
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-    const minRatingValue = minRating === "All" ? 0 : Number(minRating);
-    const ratingMatch = (album.rating || 0) >= minRatingValue;
-    return searchMatch && ratingMatch;
-  });
+  const selectStyle = {
+    ...inputStyle,
+    width: "150px",
+  };
 
   const gridContainerStyle = {
     display: "grid",
     gridTemplateColumns: "repeat(4, 1fr)",
-    gap: "8px",
+    gap: "10px",
     padding: "20px",
     margin: "0 auto",
     maxWidth: "95%",
@@ -78,13 +156,16 @@ function ListPage() {
     overflow: "hidden",
     height: "210px",
     cursor: "pointer",
+
+    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+    transition: "transform 0.3s",
   };
 
   const albumImageStyle = (isHovered) => ({
     width: "100%",
-    position: "absolute",
-    opacity: isHovered ? 0.5 : 1, // dim only the hovered image
-    top: "-45%",
+    height: "100%",
+    objectFit: "cover",
+    opacity: isHovered ? 0.7 : 1, // Dim only the hovered image
     transition: "opacity 0.3s ease",
   });
 
@@ -99,11 +180,13 @@ function ListPage() {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    opacity: isHovered ? 1 : 0, // show overlay only on hover
+    opacity: isHovered ? 1 : 0, // Show overlay only on hover
     transition: "opacity 0.3s ease",
     fontSize: "14px",
     fontFamily: "sans-serif",
     textAlign: "center",
+    padding: "10px",
+    borderRadius: "8px",
   });
 
   const pageStyle = {
@@ -120,6 +203,11 @@ function ListPage() {
           a:hover {
             color: #fff !important;
           }
+          @media (max-width: 1024px) {
+            .responsive-container {
+              grid-template-columns: repeat(3, 1fr) !important;
+            }
+          }
           @media (max-width: 768px) {
             .responsive-container {
               grid-template-columns: repeat(2, 1fr) !important;
@@ -129,6 +217,11 @@ function ListPage() {
             .responsive-container {
               grid-template-columns: repeat(1, 1fr) !important;
             }
+          }
+          /* Focus styles for the search input */
+          .search-input:focus {
+            background-color: #e0e0e0;
+            border-color: #999;
           }
         `}
       </style>
@@ -156,19 +249,23 @@ function ListPage() {
         </Link>
       </div>
 
+      {/* Search and Filter Controls */}
       <div style={filterContainerStyle}>
         <input
           type="text"
-          placeholder="Search Album"
+          placeholder="Search albums"
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(e) => handleSearchInput(e.target.value)}
           style={inputStyle}
+          className="search-input" // For focus styles
+          aria-label="Search Albums"
         />
 
         <select
           value={minRating}
-          onChange={(e) => setMinRating(e.target.value)}
-          style={inputStyle}
+          onChange={(e) => handleMinRatingChange(e.target.value)}
+          style={selectStyle}
+          className="search-input" // For consistent styling
         >
           <option value="All">All Ratings</option>
           <option value="1">1 and up</option>
@@ -179,6 +276,7 @@ function ListPage() {
         </select>
       </div>
 
+      {/* Albums Grid */}
       <div style={gridContainerStyle} className="responsive-container">
         {filteredAlbums.length === 0 ? (
           <p>No albums match your search.</p>

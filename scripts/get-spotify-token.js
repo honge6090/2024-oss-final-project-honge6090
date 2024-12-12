@@ -39,16 +39,16 @@ async function getSpotifyToken() {
     console.log("Spotify Access Token:", token);
     console.log("Expires in (seconds):", data.expires_in);
 
-    // Write token to .env.local in the project root
+    // write token to .env.local in the project root
     const envLocalPath = path.resolve(__dirname, "..", ".env.local");
     let envLocalContent = "";
 
-    // If .env.local already exists, read its content.
+    // if .env.local already exists, read its content.
     if (fs.existsSync(envLocalPath)) {
       envLocalContent = fs.readFileSync(envLocalPath, "utf8");
     }
 
-    // Update or add the REACT_APP_SPOTIFY_TOKEN line
+    //update or add the REACT_APP_SPOTIFY_TOKEN line
     const newEnvLocalContent = setEnvValue(
       envLocalContent,
       "REACT_APP_SPOTIFY_TOKEN",
@@ -63,7 +63,7 @@ async function getSpotifyToken() {
   }
 }
 
-// Helper function to add or replace environment variables in .env.local
+// hhelper function to add or replace environment variables in .env.local
 function setEnvValue(envContent, key, value) {
   const regex = new RegExp(`^${key}=.*$`, "m");
   if (regex.test(envContent)) {

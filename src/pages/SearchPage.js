@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
 import AlbumItem from "../components/AlbumItem";
 
@@ -9,6 +9,7 @@ function SearchPage() {
   const [addedAlbums, setAddedAlbums] = useState([]);
   const location = useLocation(); // To determine the active page
 
+  // Fetch Spotify token on component mount
   useEffect(() => {
     async function fetchToken() {
       const tk = await getSpotifyToken();
@@ -17,87 +18,142 @@ function SearchPage() {
     fetchToken();
   }, []);
 
+  // Fetch added albums on component mount
   useEffect(() => {
     async function fetchAddedAlbums() {
-      const response = await fetch(
-        "https://6728860f270bd0b97555efb5.mockapi.io/albums"
-      );
-      const data = await response.json();
-      setAddedAlbums(data);
+      try {
+        const response = await fetch(
+          "https://6728860f270bd0b97555efb5.mockapi.io/albums"
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch added albums.");
+        }
+        const data = await response.json();
+        setAddedAlbums(data);
+      } catch (error) {
+        console.error(error);
+        alert("Error fetching added albums.");
+      }
     }
     fetchAddedAlbums();
   }, []);
 
-  const handleSearch = async (e) => {
-    e.preventDefault();
+  /**
+   * Memoized handleSearch function to prevent unnecessary re-creations.
+   * It only changes when `query` or `token` changes.
+   */
+  const handleSearch = useCallback(async () => {
     if (!query || !token) return;
 
-    const response = await fetch(
-      `https://api.spotify.com/v1/search?q=${encodeURIComponent(
-        query
-      )}&type=album`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+    try {
+      const response = await fetch(
+        `https://api.spotify.com/v1/search?q=${encodeURIComponent(
+          query
+        )}&type=album`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch albums from Spotify.");
       }
-    );
-    const data = await response.json();
-    setAlbums(data.albums ? data.albums.items : []);
-  };
+
+      const data = await response.json();
+      setAlbums(data.albums ? data.albums.items : []);
+    } catch (error) {
+      console.error(error);
+      alert("Error fetching albums from Spotify.");
+    }
+  }, [query, token]);
+
+  // Trigger search whenever `query` or `token` changes, with debounce
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      if (query && token) {
+        handleSearch();
+      } else {
+        setAlbums([]);
+      }
+    }, 500); // 500ms debounce to prevent excessive API calls
+
+    return () => clearTimeout(delayDebounce);
+  }, [query, token, handleSearch]);
 
   const handleAddAlbum = async (album) => {
-    const existingAlbumsResponse = await fetch(
-      "https://6728860f270bd0b97555efb5.mockapi.io/albums"
-    );
-    const existingAlbums = await existingAlbumsResponse.json();
-
-    const isDuplicate = existingAlbums.some(
-      (storedAlbum) => storedAlbum.spotifyId === album.id
-    );
-    if (isDuplicate) {
-      return;
-    }
-
-    const albumToPost = {
-      ...album,
-      spotifyId: album.id,
-      rating: 3,
-      genres: [],
-    };
-
-    const response = await fetch(
-      "https://6728860f270bd0b97555efb5.mockapi.io/albums",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(albumToPost),
+    try {
+      // Check for duplicates
+      const existingAlbumsResponse = await fetch(
+        "https://6728860f270bd0b97555efb5.mockapi.io/albums"
+      );
+      if (!existingAlbumsResponse.ok) {
+        throw new Error("Failed to fetch existing albums.");
       }
-    );
+      const existingAlbums = await existingAlbumsResponse.json();
 
-    if (response.ok) {
+      const isDuplicate = existingAlbums.some(
+        (storedAlbum) => storedAlbum.spotifyId === album.id
+      );
+      if (isDuplicate) {
+        alert("Album is already added.");
+        return;
+      }
+
+      const albumToPost = {
+        ...album,
+        spotifyId: album.id,
+        rating: 3,
+        genres: [],
+      };
+
+      const response = await fetch(
+        "https://6728860f270bd0b97555efb5.mockapi.io/albums",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(albumToPost),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to add album.");
+      }
+
       const newAlbum = await response.json();
       setAddedAlbums((prev) => [...prev, newAlbum]);
-    } else {
-      alert("Failed to add album.");
+      alert("Album added successfully!");
+    } catch (error) {
+      console.error(error);
+      alert("Error adding album.");
     }
   };
 
   const handleRemoveAlbum = async (album) => {
-    const stored = addedAlbums.find((a) => a.spotifyId === album.id);
-    if (!stored) return;
-
-    const response = await fetch(
-      `https://6728860f270bd0b97555efb5.mockapi.io/albums/${stored.id}`,
-      {
-        method: "DELETE",
+    try {
+      const stored = addedAlbums.find((a) => a.spotifyId === album.id);
+      if (!stored) {
+        alert("Album not found.");
+        return;
       }
-    );
 
-    if (response.ok) {
+      const response = await fetch(
+        `https://6728860f270bd0b97555efb5.mockapi.io/albums/${stored.id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to remove album.");
+      }
+
       setAddedAlbums((prev) => prev.filter((a) => a.id !== stored.id));
-    } else {
-      alert("Failed to remove album.");
+      alert("Album removed successfully!");
+    } catch (error) {
+      console.error(error);
+      alert("Error removing album.");
     }
   };
 
@@ -113,7 +169,7 @@ function SearchPage() {
 
   // Navbar styling
   const headerStyle = {
-    backgroundColor: "#111111", // Dark background for the navbar
+    backgroundColor: "#111111",
     color: "#fff",
     padding: "20px",
     fontWeight: "bold",
@@ -144,14 +200,19 @@ function SearchPage() {
 
   const searchInputStyle = {
     padding: "8px",
-    width: "200px",
+    width: "300px",
     marginRight: "10px",
+    backgroundColor: "#f0f0f0", // Light gray background
+    color: "#333", // Dark text for better readability
+    border: "1px solid #ccc", // Light border
+    borderRadius: "4px", // Rounded corners
+    outline: "none", // Remove default outline
+    boxSizing: "border-box", // Ensure padding doesn't affect overall width
+    transition: "background-color 0.3s, border-color 0.3s", // Smooth transition on focus
   };
 
-  const searchButtonStyle = {
-    padding: "8px 12px",
-    cursor: "pointer",
-  };
+  // Optional: Add focus styles using inline styles with JavaScript
+  // However, since inline styles don't support pseudo-classes, consider using a CSS class for more complex styling.
 
   const resultsContainerStyle = {
     margin: "20px auto",
@@ -190,6 +251,11 @@ function SearchPage() {
               max-width: 100% !important;
             }
           }
+          /* Optional: If you decide to use a CSS class for focus styles */
+          .search-input:focus {
+            background-color: #e0e0e0;
+            border-color: #999;
+          }
         `}
       </style>
 
@@ -217,17 +283,15 @@ function SearchPage() {
       </div>
 
       <div style={searchContainerStyle}>
-        <form onSubmit={handleSearch}>
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by album name"
-            style={searchInputStyle}
-          />
-          <button type="submit" style={searchButtonStyle}>
-            Search
-          </button>
-        </form>
+        {/* Just an input now, no onSubmit form */}
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="What album do you want to add?"
+          style={searchInputStyle}
+          // Optionally add a class for more complex styles
+          // className="search-input"
+        />
       </div>
 
       {albums.length > 0 && (
@@ -252,8 +316,8 @@ function SearchPage() {
   );
 }
 
-// Replace this with a real token retrieval method.
 async function getSpotifyToken() {
+  // Ensure that REACT_APP_SPOTIFY_TOKEN is defined in your environment variables
   return process.env.REACT_APP_SPOTIFY_TOKEN;
 }
 
