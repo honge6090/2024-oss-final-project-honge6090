@@ -11,7 +11,7 @@ function DetailPage() {
   const [tracksLoading, setTracksLoading] = useState(false);
   const [newRating, setNewRating] = useState("");
 
-  const token = process.env.REACT_APP_SPOTIFY_TOKEN; // For fetching tracks
+  const token = process.env.REACT_APP_SPOTIFY_TOKEN; // for fetching tracks
 
   useEffect(() => {
     async function fetchAlbum() {

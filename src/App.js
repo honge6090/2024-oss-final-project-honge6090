@@ -2,7 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import SearchPage from "./pages/SearchPage";
 import ListPage from "./pages/ListPage";
-import DetailPage from "./pages/DetailPage"; // We'll create this
+import DetailPage from "./pages/DetailPage";
 
 function App() {
   return (

@@ -3,12 +3,12 @@ import { Link, useLocation } from "react-router-dom";
 
 function ListPage() {
   const [albums, setAlbums] = useState([]);
-  const [hoveredAlbum, setHoveredAlbum] = useState(null); // Track which album is hovered
+  const [hoveredAlbum, setHoveredAlbum] = useState(null); // track which album is hovered
   const [searchQuery, setSearchQuery] = useState("");
   const [minRating, setMinRating] = useState("All");
   const location = useLocation();
 
-  // Fetch albums from the API on component mount
+  // fetch albums from the API
   useEffect(() => {
     async function fetchAlbums() {
       try {
@@ -28,10 +28,6 @@ function ListPage() {
     fetchAlbums();
   }, []);
 
-  /**
-   * Memoized function to handle search query updates with debounce.
-   * This prevents the search from triggering on every keystroke.
-   */
   const handleSearchInput = useCallback((value) => {
     setSearchQuery(value);
   }, []);
@@ -40,10 +36,6 @@ function ListPage() {
     setMinRating(value);
   }, []);
 
-  /**
-   * useMemo to memoize the filtered albums based on searchQuery and minRating.
-   * This ensures that the filtering logic runs only when dependencies change.
-   */
   const filteredAlbums = useMemo(() => {
     const query = searchQuery.toLowerCase();
 
@@ -63,36 +55,33 @@ function ListPage() {
         album.genres &&
         album.genres.some((genre) => genre.toLowerCase().includes(query));
 
-      // Track Name Match
+      // track name match
       const trackMatch =
         album.tracks &&
         album.tracks.some((track) => track.name.toLowerCase().includes(query));
 
-      // Rating Filter
+      // rating filter
       const ratingMatch =
         minRating === "All" ||
         (album.rating && album.rating >= Number(minRating));
 
-      // Return true if any of the search fields match and rating criteria are met
+      // return true if any of the search fields match and rating criteria are met
       return (
         (albumMatch || artistMatch || genreMatch || trackMatch) && ratingMatch
       );
     });
   }, [albums, searchQuery, minRating]);
 
-  // Debounce mechanism to delay the search input handling
+  // debounce
   useEffect(() => {
-    const handler = setTimeout(() => {
-      // The searchQuery state is already being updated via handleSearchInput
-      // Here, you could perform additional actions if needed
-    }, 300); // 300ms debounce time
+    const handler = setTimeout(() => {}, 300); // 300ms debounce time
 
     return () => {
       clearTimeout(handler);
     };
   }, [searchQuery]);
 
-  // Styling objects
+  // styling objects
   const headerStyle = {
     backgroundColor: "#111111",
     color: "#fff",
@@ -123,6 +112,7 @@ function ListPage() {
     fontFamily: "sans-serif",
   };
 
+  //seach box styling
   const inputStyle = {
     padding: "8px",
     marginRight: "10px",
@@ -130,8 +120,8 @@ function ListPage() {
     backgroundColor: "#f0f0f0", // Light gray background
     color: "#333", // Dark text for better readability
     border: "1px solid #ccc", // Light border
-    borderRadius: "4px", // Rounded corners
-    outline: "none", // Remove default outline
+    borderRadius: "4px", // rounded corners
+    outline: "none", // remove default outline
     boxSizing: "border-box", // Ensure padding doesn't affect overall width
     transition: "background-color 0.3s, border-color 0.3s", // Smooth transition on focus
   };
@@ -165,7 +155,7 @@ function ListPage() {
     width: "100%",
     height: "100%",
     objectFit: "cover",
-    opacity: isHovered ? 0.7 : 1, // Dim only the hovered image
+    opacity: isHovered ? 0.7 : 1, // dim only the hovered image
     transition: "opacity 0.3s ease",
   });
 
@@ -180,13 +170,13 @@ function ListPage() {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    opacity: isHovered ? 1 : 0, // Show overlay only on hover
+    opacity: isHovered ? 1 : 0, // show overlay only on hover
     transition: "opacity 0.3s ease",
     fontSize: "14px",
     fontFamily: "sans-serif",
+    fontWeight: "bold",
     textAlign: "center",
     padding: "10px",
-    borderRadius: "8px",
   });
 
   const pageStyle = {
@@ -257,7 +247,7 @@ function ListPage() {
           value={searchQuery}
           onChange={(e) => handleSearchInput(e.target.value)}
           style={inputStyle}
-          className="search-input" // For focus styles
+          className="search-input" // for focus styles
           aria-label="Search Albums"
         />
 
@@ -265,7 +255,7 @@ function ListPage() {
           value={minRating}
           onChange={(e) => handleMinRatingChange(e.target.value)}
           style={selectStyle}
-          className="search-input" // For consistent styling
+          className="search-input"
         >
           <option value="All">All Ratings</option>
           <option value="1">1 and up</option>

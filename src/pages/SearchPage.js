@@ -7,9 +7,9 @@ function SearchPage() {
   const [albums, setAlbums] = useState([]);
   const [token, setToken] = useState("");
   const [addedAlbums, setAddedAlbums] = useState([]);
-  const location = useLocation(); // To determine the active page
+  const location = useLocation(); //determine the active page
 
-  // Fetch Spotify token on component mount
+  // fetch Spotify token on component mount
   useEffect(() => {
     async function fetchToken() {
       const tk = await getSpotifyToken();
@@ -18,7 +18,7 @@ function SearchPage() {
     fetchToken();
   }, []);
 
-  // Fetch added albums on component mount
+  // fetch added albums on component mount
   useEffect(() => {
     async function fetchAddedAlbums() {
       try {
@@ -38,10 +38,6 @@ function SearchPage() {
     fetchAddedAlbums();
   }, []);
 
-  /**
-   * Memoized handleSearch function to prevent unnecessary re-creations.
-   * It only changes when `query` or `token` changes.
-   */
   const handleSearch = useCallback(async () => {
     if (!query || !token) return;
 
@@ -69,7 +65,7 @@ function SearchPage() {
     }
   }, [query, token]);
 
-  // Trigger search whenever `query` or `token` changes, with debounce
+  // trigger search whenever search field changes
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
       if (query && token) {
@@ -167,7 +163,7 @@ function SearchPage() {
 
   const addedIds = new Set(addedAlbums.map((a) => a.spotifyId));
 
-  // Navbar styling
+  // navbar styling
   const headerStyle = {
     backgroundColor: "#111111",
     color: "#fff",
@@ -202,17 +198,14 @@ function SearchPage() {
     padding: "8px",
     width: "300px",
     marginRight: "10px",
-    backgroundColor: "#f0f0f0", // Light gray background
-    color: "#333", // Dark text for better readability
-    border: "1px solid #ccc", // Light border
-    borderRadius: "4px", // Rounded corners
-    outline: "none", // Remove default outline
-    boxSizing: "border-box", // Ensure padding doesn't affect overall width
-    transition: "background-color 0.3s, border-color 0.3s", // Smooth transition on focus
+    backgroundColor: "#f0f0f0", // light gray background
+    color: "#333", // dark text
+    border: "1px solid #ccc", // light border
+    borderRadius: "4px", // rounded corners
+    outline: "none", // remove default outline
+    boxSizing: "border-box", // ensure padding doesn't affect overall width
+    transition: "background-color 0.3s, border-color 0.3s", // smooth transition on focus
   };
-
-  // Optional: Add focus styles using inline styles with JavaScript
-  // However, since inline styles don't support pseudo-classes, consider using a CSS class for more complex styling.
 
   const resultsContainerStyle = {
     margin: "20px auto",
@@ -283,14 +276,11 @@ function SearchPage() {
       </div>
 
       <div style={searchContainerStyle}>
-        {/* Just an input now, no onSubmit form */}
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="What album do you want to add?"
           style={searchInputStyle}
-          // Optionally add a class for more complex styles
-          // className="search-input"
         />
       </div>
 
@@ -317,7 +307,6 @@ function SearchPage() {
 }
 
 async function getSpotifyToken() {
-  // Ensure that REACT_APP_SPOTIFY_TOKEN is defined in your environment variables
   return process.env.REACT_APP_SPOTIFY_TOKEN;
 }
 
