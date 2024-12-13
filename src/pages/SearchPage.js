@@ -254,7 +254,7 @@ function SearchPage() {
 
       {/* Navbar */}
       <div style={headerStyle}>
-        <div>Music Search</div>
+        <div>My Albums</div>
         <Link
           to="/"
           style={{
@@ -271,7 +271,7 @@ function SearchPage() {
             ...(location.pathname === "/list" ? activeNavLinkStyle : {}),
           }}
         >
-          My Albums
+          Collection
         </Link>
       </div>
 

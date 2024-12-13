@@ -217,7 +217,7 @@ function ListPage() {
 
       {/* Navbar */}
       <div style={headerStyle}>
-        <div>Music Search</div>
+        <div>My Albums</div>
         <Link
           to="/"
           style={{
@@ -234,7 +234,7 @@ function ListPage() {
             ...(location.pathname === "/list" ? activeNavLinkStyle : {}),
           }}
         >
-          My Albums
+          Collection
         </Link>
       </div>
 
