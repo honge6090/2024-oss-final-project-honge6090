@@ -5,8 +5,8 @@ const fetch = require("node-fetch");
 const fs = require("fs");
 const path = require("path");
 
-const clientId = process.env.SPOTIFY_CLIENT_ID;
-const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
+const clientId = process.env.REACT_APP_SPOTIFY_CLIENT_ID;
+const clientSecret = process.env.REACT_APP_SPOTIFY_CLIENT_SECRET;
 
 if (!clientId || !clientSecret) {
   console.error("Missing SPOTIFY_CLIENT_ID or SPOTIFY_CLIENT_SECRET in .env");
