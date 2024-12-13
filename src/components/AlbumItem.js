@@ -10,7 +10,7 @@ function AlbumItem({ album, isAdded, onToggle, rank }) {
     cursor: "pointer",
     fontSize: "24px",
     marginLeft: "auto",
-    color: isAdded ? "red" : "white",
+    color: isAdded ? "white" : "white",
   };
 
   const containerStyle = {

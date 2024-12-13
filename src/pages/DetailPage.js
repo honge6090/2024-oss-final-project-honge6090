@@ -6,12 +6,11 @@ function DetailPage() {
   const navigate = useNavigate();
   const [album, setAlbum] = useState(null);
   const [loading, setLoading] = useState(true);
-
   const [tracks, setTracks] = useState([]);
   const [tracksLoading, setTracksLoading] = useState(false);
   const [newRating, setNewRating] = useState("");
 
-  const token = process.env.REACT_APP_SPOTIFY_TOKEN; // for fetching tracks
+  const token = process.env.REACT_APP_SPOTIFY_TOKEN;
 
   useEffect(() => {
     async function fetchAlbum() {
@@ -153,93 +152,155 @@ function DetailPage() {
       }
 
       alert("Album deleted successfully!");
-      navigate("/list"); // Redirect back to the album list
+      navigate("/list");
     } catch (err) {
       console.error("Error deleting album:", err);
       alert("An error occurred while deleting the album.");
     }
   };
 
+  const pageStyle = {
+    backgroundColor: "#111111",
+    color: "#fff",
+    fontFamily: "sans-serif",
+    minHeight: "100vh",
+    padding: "20px",
+    display: "flex",
+    alignItems: "center", // Center items vertically
+  };
+
+  const imageContainerStyle = {
+    flex: "1",
+
+    marginLeft: "50px",
+    display: "flex", // Flex container
+    alignItems: "center", // Center content vertically
+  };
+
+  const infoContainerStyle = {
+    flex: "1",
+    textAlign: "center",
+    display: "flex", // Flex container
+    flexDirection: "column", // Stack content vertically
+    alignItems: "center", // Center content horizontally
+    justifyContent: "center", // Center content vertically
+  };
+
+  const buttonStyle = {
+    marginRight: "10px",
+    backgroundColor: "red",
+    color: "#fff",
+    padding: "6px 12px",
+    borderRadius: "4px",
+    border: "none",
+  };
+
+  const listStyle = {
+    listStylePosition: "inside",
+    padding: 0,
+  };
+
+  const closeButtonStyle = {
+    position: "absolute",
+    top: "10px",
+    right: "10px",
+    backgroundColor: "transparent",
+    border: "none",
+    color: "#fff",
+    fontSize: "24px",
+    cursor: "pointer",
+  };
+
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>{name}</h1>
-      {albumCover && (
-        <div style={{ marginBottom: "20px" }}>
+    <div style={{ ...pageStyle, position: "relative" }}>
+      <button
+        style={closeButtonStyle}
+        onClick={() => navigate("/list")}
+        aria-label="Close"
+      >
+        ×
+      </button>
+      <div style={imageContainerStyle}>
+        {albumCover && (
           <img
             src={albumCover}
             alt={name}
-            style={{ width: "300px", height: "auto", borderRadius: "8px" }}
+            style={{ width: "85%", height: "auto", borderRadius: "2px" }}
           />
+        )}
+      </div>
+      <div style={infoContainerStyle}>
+        <h1>{name}</h1>
+        <h4>{artistNames}</h4>
+        <br />
+        <p>
+          <strong>Album Type:</strong> {album_type}
+        </p>
+        <h2 style={{ marginTop: "10px" }}>Genres</h2>
+        {genres && genres.length > 0 ? (
+          <ul style={{ listStyleType: "none", paddingLeft: "0" }}>
+            {genres.map((genre) => (
+              <li key={genre} style={{ marginLeft: "0" }}>
+                {genre}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>No genres stored for this album.</p>
+        )}
+        <h2>Tracks</h2>
+        {tracksLoading && <p>Loading tracks...</p>}
+        {!tracksLoading && tracks.length === 0 && <p>No tracks found.</p>}
+        {!tracksLoading && tracks.length > 0 && (
+          <div
+            style={
+              tracks.length > 5
+                ? {
+                    maxHeight: "150px",
+                    overflowY: "scroll",
+                    marginBottom: "15px",
+                  }
+                : {}
+            }
+          >
+            <ol style={listStyle}>
+              {tracks.map((track) => (
+                <li key={track.id}>{track.name}</li>
+              ))}
+            </ol>
+          </div>
+        )}
+        <h2>Rating</h2>
+        {rating ? (
+          <p>
+            {Array.from({ length: 5 }, (_, index) =>
+              index < rating ? "★" : "☆"
+            ).join("")}
+          </p>
+        ) : (
+          <p>No rating yet. Be the first to rate this album.</p>
+        )}
+        <form onSubmit={handleRatingSubmit} style={{ marginTop: "10px" }}>
+          <label>
+            Set Rating (1-5):
+            <input
+              type="number"
+              min="1"
+              max="5"
+              value={newRating}
+              onChange={(e) => setNewRating(e.target.value)}
+              style={{ marginLeft: "10px", width: "50px" }}
+            />
+          </label>
+          <button type="submit" style={{ marginLeft: "10px" }}>
+            Submit Rating
+          </button>
+        </form>
+        <div style={{ marginTop: "20px" }}>
+          <button onClick={handleDelete} style={buttonStyle}>
+            Delete Album
+          </button>
         </div>
-      )}
-      <p>
-        <strong>Artist:</strong> {artistNames}
-      </p>
-      <p>
-        <strong>Album Type:</strong> {album_type}
-      </p>
-
-      <h2>Genres</h2>
-      {genres && genres.length > 0 ? (
-        <ul>
-          {genres.map((genre) => (
-            <li key={genre}>{genre}</li>
-          ))}
-        </ul>
-      ) : (
-        <p>No genres stored for this album.</p>
-      )}
-
-      <h2>Tracks</h2>
-      {tracksLoading && <p>Loading tracks...</p>}
-      {!tracksLoading && tracks.length === 0 && <p>No tracks found.</p>}
-      {!tracksLoading && tracks.length > 0 && (
-        <ol>
-          {tracks.map((track) => (
-            <li key={track.id}>{track.name}</li>
-          ))}
-        </ol>
-      )}
-
-      <h2>Rating</h2>
-      {rating ? (
-        <p>Current Rating: {rating} out of 5</p>
-      ) : (
-        <p>No rating yet. Be the first to rate this album.</p>
-      )}
-
-      <form onSubmit={handleRatingSubmit} style={{ marginTop: "10px" }}>
-        <label>
-          Set Rating (1-5):
-          <input
-            type="number"
-            min="1"
-            max="5"
-            value={newRating}
-            onChange={(e) => setNewRating(e.target.value)}
-            style={{ marginLeft: "10px", width: "50px" }}
-          />
-        </label>
-        <button type="submit" style={{ marginLeft: "10px" }}>
-          Submit Rating
-        </button>
-      </form>
-
-      <div style={{ marginTop: "20px" }}>
-        <button
-          onClick={handleDelete}
-          style={{
-            marginRight: "10px",
-            backgroundColor: "red",
-            color: "#fff",
-            padding: "6px 12px",
-            borderRadius: "4px",
-            border: "none",
-          }}
-        >
-          Delete Album
-        </button>
-        <Link to="/list">Back to My Albums</Link>
       </div>
     </div>
   );

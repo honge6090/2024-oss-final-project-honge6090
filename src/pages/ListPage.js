@@ -134,7 +134,7 @@ function ListPage() {
   const gridContainerStyle = {
     display: "grid",
     gridTemplateColumns: "repeat(4, 1fr)",
-    gap: "10px",
+    gap: "7px",
     padding: "20px",
     margin: "0 auto",
     maxWidth: "95%",
@@ -146,7 +146,6 @@ function ListPage() {
     overflow: "hidden",
     height: "210px",
     cursor: "pointer",
-
     boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
     transition: "transform 0.3s",
   };
@@ -239,7 +238,6 @@ function ListPage() {
         </Link>
       </div>
 
-      {/* Search and Filter Controls */}
       <div style={filterContainerStyle}>
         <input
           type="text"
@@ -257,7 +255,7 @@ function ListPage() {
           style={selectStyle}
           className="search-input"
         >
-          <option value="All">All Ratings</option>
+          <option value="All">Filter Rating</option>
           <option value="1">1 and up</option>
           <option value="2">2 and up</option>
           <option value="3">3 and up</option>
