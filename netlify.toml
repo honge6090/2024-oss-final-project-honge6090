@@ -1,0 +1,3 @@
+[[functions]]
+  schedule = "0 * * * *" # Run every hour
+  path = "/.netlify/functions/refreshSpotifyToken"
