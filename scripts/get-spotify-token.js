@@ -8,6 +8,8 @@ const path = require("path");
 const clientId = process.env.REACT_APP_SPOTIFY_CLIENT_ID;
 const clientSecret = process.env.REACT_APP_SPOTIFY_CLIENT_SECRET;
 
+const cron = require("node-cron");
+
 if (!clientId || !clientSecret) {
   console.error("Missing SPOTIFY_CLIENT_ID or SPOTIFY_CLIENT_SECRET in .env");
   process.exit(1);
@@ -74,5 +76,10 @@ function setEnvValue(envContent, key, value) {
       : `${envContent}\n${key}=${value}\n`;
   }
 }
+
+cron.schedule("0 * * * *", () => {
+  console.log("Refreshing Spotify token...");
+  getSpotifyToken();
+});
 
 getSpotifyToken();
