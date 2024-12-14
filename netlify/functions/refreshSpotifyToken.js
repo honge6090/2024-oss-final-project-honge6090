@@ -39,7 +39,6 @@ exports.handler = async function () {
     console.log("Spotify Access Token:", token);
     console.log("Expires in (seconds):", data.expires_in);
 
-    // Here, you could save the token to Netlify environment variables, a database, or other storage
     return {
       statusCode: 200,
       body: JSON.stringify({ token }),
