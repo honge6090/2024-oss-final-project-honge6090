@@ -3,8 +3,8 @@
   command = "npm run build"
 
 [functions]
-  directory = "netlify/functions"
+  directory = "netlify/functions" # The directory where your functions are stored
 
-[[functions]]
-  schedule = "0 * * * *" # Every hour
+[[scheduled.functions]]
   path = "/.netlify/functions/refreshSpotifyToken"
+  schedule = "0 * * * *" # Run every hour
